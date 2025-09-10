@@ -20,13 +20,14 @@ exports.getItems = async (req, res) => {
 
 // Add a new item
 exports.addItem = async (req, res) => {
-  const { name, brand, category, item_code, price, quantity, date_added, image_url } = req.body;
+  const { name, brand, category, item_code, price, quantity, date_added } = req.body;
+  const image_url = req.file ? `/uploads/${req.file.filename}` : null;
   try {
     await db.query(
       'INSERT INTO inventory (name, brand, category, item_code, price, quantity, date_added, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       [name, brand, category, item_code, price, quantity, date_added, image_url]
     );
-    res.status(201).json({ message: 'Item added' });
+    res.status(201).json({ message: 'Item added', image_url });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

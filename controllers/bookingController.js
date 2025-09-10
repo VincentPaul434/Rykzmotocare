@@ -43,7 +43,27 @@ const getAllBookings = async (req, res) => {
   }
 };
 
+// Update booking status/progress
+const updateBooking = async (req, res) => {
+  const { id } = req.params;
+  const { book_status } = req.body;
+  try {
+    const [result] = await db.query(
+      `UPDATE bookings SET book_status = ? WHERE booking_id = ?`,
+      [book_status, id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Booking not found.' });
+    }
+    res.json({ message: 'Booking status updated.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   createBooking,
-  getAllBookings
+  getAllBookings,
+  updateBooking
 };
