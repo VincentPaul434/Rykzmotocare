@@ -40,6 +40,8 @@ app.use('/api', require('./routes/mechanicRoutes'));
 app.use('/api', require('./routes/inventoryRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/customer-bills', require('./routes/customerBillRoutes'));
+app.use('/api/shop', require('./routes/shopControlRoutes'));
+app.use('/uploads', express.static('uploads'));
 
 
 const PORT = process.env.PORT || 5000;
