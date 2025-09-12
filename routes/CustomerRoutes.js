@@ -8,6 +8,9 @@ router.get('/customers', customerController.getCustomers);
 // Approve a customer
 router.patch('/customers/:user_id/approve', customerController.approveCustomer);
 
+// Reject a customer
+router.patch('/customers/:user_id/reject', customerController.rejectCustomer);
+
 // Delete a customer
 router.delete('/customers/:user_id', customerController.deleteCustomer);
 

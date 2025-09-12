@@ -108,3 +108,18 @@ exports.updateCustomer = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.rejectCustomer = async (req, res) => {
+  const { user_id } = req.params;
+  try {
+    // Option 1: Set status to 'rejected'
+    await db.query(
+      "UPDATE users SET status = 'rejected' WHERE user_id = ? AND user_type = 'customer'",
+      [user_id]
+    );
+    res.json({ message: 'Customer rejected' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
