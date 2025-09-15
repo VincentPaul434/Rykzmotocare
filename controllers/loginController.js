@@ -46,16 +46,16 @@ exports.login = async (req, res) => {
     { expiresIn: '1d' }
   );
 
-  // --- THIS IS THE IMPORTANT PART ---
+
   if (role === 'user') {
-    // If user status is pending, redirect to pending-approval page
+
     if (user.status === 'pending') {
       return res.json({ 
         token, 
         role, 
         status: user.status, 
-        user_id: user.user_id,         // <-- add this
-        name: user.name,               // <-- add this
+        user_id: user.user_id,        
+        name: user.name,               
         redirect: '/pending-approval' 
       });
     }
@@ -64,8 +64,8 @@ exports.login = async (req, res) => {
       token, 
       role, 
       status: user.status, 
-      user_id: user.user_id,           // <-- add this
-      name: user.name                  // <-- add this
+      user_id: user.user_id,           
+      name: user.name                  
     });
   } else {
     // Admins don't need status
