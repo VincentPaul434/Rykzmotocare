@@ -3,11 +3,26 @@ const db = require('../config/db');
 // Get all mechanics
 exports.getMechanics = async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM mechanics');
-    res.json(rows);
+    const [mechanics] = await db.query(
+      'SELECT mechanic_id AS id, name FROM mechanics WHERE status = "Available"'
+    );
+    res.json({ mechanics });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ mechanics: [] });
+  }
+};
+
+// Get all mechanics (no status filter)
+exports.getAllMechanics = async (req, res) => {
+  try {
+    const [mechanics] = await db.query(
+      'SELECT mechanic_id AS id, name, specialization, days_available, time_available, status, availability FROM mechanics'
+    );
+    res.json({ mechanics });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ mechanics: [] });
   }
 };
 
@@ -51,5 +66,20 @@ exports.deleteMechanic = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.getMechanicAvailability = async (req, res) => {
+  const { service } = req.query;
+  try {
+    // Match service to specialization and status to 'Available'
+    const [mechanics] = await db.query(
+      'SELECT mechanic_id AS id, name FROM mechanics WHERE specialization = ? AND status = "Available"',
+      [service]
+    );
+    res.json({ mechanics });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ mechanics: [] });
   }
 };

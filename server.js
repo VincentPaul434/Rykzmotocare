@@ -42,6 +42,7 @@ app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/customer-bills', require('./routes/customerBillRoutes'));
 app.use('/api/shop', require('./routes/shopControlRoutes'));
 app.use('/uploads', express.static('uploads'));
+app.use('/api', require('./routes/notificationRoutes'));
 
 
 const PORT = process.env.PORT || 5000;
