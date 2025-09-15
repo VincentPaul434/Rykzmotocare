@@ -37,13 +37,17 @@ exports.addItem = async (req, res) => {
 // Update an item
 exports.updateItem = async (req, res) => {
   const { item_id } = req.params;
-  const { name, brand, category, item_code, price, quantity, date_added, image_url } = req.body;
+  const { name, brand, category, item_code, price, quantity, date_added } = req.body;
+  let image_url = req.body.image_url;
+  if (req.file) {
+    image_url = `/uploads/${req.file.filename}`;
+  }
   try {
     await db.query(
       'UPDATE inventory SET name=?, brand=?, category=?, item_code=?, price=?, quantity=?, date_added=?, image_url=? WHERE item_id=?',
       [name, brand, category, item_code, price, quantity, date_added, image_url, item_id]
     );
-    res.json({ message: 'Item updated' });
+    res.json({ message: 'Item updated', image_url });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

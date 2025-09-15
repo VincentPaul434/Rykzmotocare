@@ -15,7 +15,7 @@ const upload = multer({ storage: storage });
 
 router.get('/inventory', inventoryController.getItems);
 router.post('/inventory', upload.single('image'), inventoryController.addItem);
-router.put('/inventory/:item_id', inventoryController.updateItem);
+router.put('/inventory/:item_id', upload.single('image'), inventoryController.updateItem)
 router.delete('/inventory/:item_id', inventoryController.deleteItem);
 router.post('/inventory/:item_id/sell', inventoryController.sellItem);
 

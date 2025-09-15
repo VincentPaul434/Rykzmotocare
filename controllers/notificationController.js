@@ -2,7 +2,10 @@ const db = require('../config/db');
 
 // Create a notification
 exports.createNotification = async (req, res) => {
-  const { user_id, message, type = 'info' } = req.body;
+  const { user_id, message, type = 'info' } = req.body || {};
+  if (!user_id || !message) {
+    return res.status(400).json({ success: false, error: 'user_id and message are required' });
+  }
   try {
     await db.query(
       'INSERT INTO notifications (user_id, message, type) VALUES (?, ?, ?)',
