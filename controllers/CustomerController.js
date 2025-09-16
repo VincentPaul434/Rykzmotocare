@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const sendMail = require('../utils/sendMail');
 
 exports.getCustomers = async (req, res) => {
   try {
@@ -12,11 +13,22 @@ exports.getCustomers = async (req, res) => {
   }
 };
 
+// Approve customer
 exports.approveCustomer = async (req, res) => {
   const { user_id } = req.params;
   try {
     await db.query("UPDATE users SET status = 'approved' WHERE user_id = ?", [user_id]);
-    res.json({ message: 'Customer approved' });
+
+    // Get customer email
+    const [rows] = await db.query('SELECT email FROM users WHERE user_id = ?', [user_id]);
+    if (rows.length > 0) {
+      await sendMail(
+        rows[0].email,
+        'Account Approved',
+        'Congratulations! Your account has been approved.'
+      );
+    }
+    res.json({ message: 'Customer approved and notified.' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -109,6 +121,7 @@ exports.updateCustomer = async (req, res) => {
   }
 };
 
+// Reject customer
 exports.rejectCustomer = async (req, res) => {
   const { user_id } = req.params;
   try {
@@ -117,7 +130,17 @@ exports.rejectCustomer = async (req, res) => {
       "UPDATE users SET status = 'rejected' WHERE user_id = ? AND user_type = 'customer'",
       [user_id]
     );
-    res.json({ message: 'Customer rejected' });
+
+    // Get customer email
+    const [rows] = await db.query('SELECT email FROM users WHERE user_id = ?', [user_id]);
+    if (rows.length > 0) {
+      await sendMail(
+        rows[0].email,
+        'Account Rejected',
+        'We are sorry, but your account has been rejected.'
+      );
+    }
+    res.json({ message: 'Customer rejected and notified.' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

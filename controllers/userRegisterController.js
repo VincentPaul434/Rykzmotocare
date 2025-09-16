@@ -2,7 +2,14 @@ const User = require('../models/user');
 const { body, validationResult } = require('express-validator');
 
 exports.validate = [
-  body('email').isEmail().withMessage('Valid email required'),
+  body('email')
+    .isEmail().withMessage('Valid email required')
+    .custom(email => {
+      if (!email.endsWith('@gmail.com') && !email.endsWith('@yahoo.com')) {
+        throw new Error('Email must be @gmail.com or @yahoo.com');
+      }
+      return true;
+    }),
   body('phone').isMobilePhone().withMessage('Valid phone number required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
 ];
