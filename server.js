@@ -3,6 +3,8 @@ const mysql = require('mysql2/promise');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 dotenv.config();
@@ -26,6 +28,10 @@ db.getConnection()
   })
   .catch(err => console.log(err));
 
+// serve uploads
+fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/appointments', require('./routes/appointmentRoutes'));
@@ -41,8 +47,9 @@ app.use('/api', require('./routes/inventoryRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/customer-bills', require('./routes/customerBillRoutes'));
 app.use('/api/shop', require('./routes/shopControlRoutes'));
-app.use('/uploads', express.static('uploads'));
 app.use('/api', require('./routes/notificationRoutes'));
+app.use('/api', require('./routes/orderRoutes'));
+app.use('/api', require('./routes/paymentRoutes'));
 
 
 const PORT = process.env.PORT || 5000;
