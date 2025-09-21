@@ -82,3 +82,51 @@ exports.uploadReceiptAndMarkPaid = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+
+exports.listPayments = async (req, res) => {
+  const { status } = req.query; // 'Paid' | 'Pending' | undefined
+  const allowed = new Set(['Paid', 'Pending']);
+  const where = allowed.has(status)
+    ? 'WHERE o.payment_status = ?'
+    : 'WHERE o.payment_status IN ("Paid","Pending")';
+  const params = allowed.has(status) ? [status] : [];
+
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT 
+        o.order_id,
+        o.user_id,
+        o.total_amount,
+        o.payment_status,
+        o.payment_method,
+        o.payment_ref,
+        o.receipt_url,
+        o.created_at
+      FROM orders o
+      ${where}
+      ORDER BY o.created_at DESC
+      `,
+      params
+    );
+
+    const payments = rows.map(r => ({
+      payment_id: r.order_id,
+      payment_ref: r.payment_ref,
+      order_id: r.order_id,
+      user_id: r.user_id,
+      method: r.payment_method,
+      status: r.payment_status,
+      amount: r.total_amount,
+      receipt_url: r.receipt_url,
+      created_at: r.created_at
+    }));
+
+    res.json(payments); // return array only
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]); // empty array on error
+  }
+};
+
