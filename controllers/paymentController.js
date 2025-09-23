@@ -16,44 +16,55 @@ exports.startPayment = async (req, res) => {
   }
 
   try {
-    // Verify order belongs to user and is unpaid
     const [rows] = await db.query(
       'SELECT order_id, total_amount, status, payment_status FROM orders WHERE order_id = ? AND user_id = ? LIMIT 1',
       [order_id, user_id]
     );
-    if (!rows.length) return res.status(404).json({ message: 'Order not found' });
-    if (rows[0].status === 'Paid' || rows[0].payment_status === 'Paid') {
+    if (!rows.length) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    const ord = rows[0];
+    if (ord.status === 'Paid' || ord.payment_status === 'Paid') {
       return res.status(409).json({ message: 'Order already paid' });
     }
 
     const payment_ref = makeRef();
     await db.query(
-      'UPDATE orders SET payment_method = ?, payment_status = "Pending", payment_ref = ? WHERE order_id = ?',
-      [method, payment_ref, order_id]
+      'UPDATE orders SET payment_method = ?, payment_status = "Pending", payment_ref = ? WHERE order_id = ? AND user_id = ?',
+      [method, payment_ref, order_id, user_id]
     );
 
-    // Build instructions per method (manual flow; confirm with receipt upload)
+    const {
+      GCASH_NUMBER, GCASH_NAME, GCASH_QR_URL,
+      BDO_ACCOUNT_NAME, BDO_ACCOUNT_NUMBER, BDO_BRANCH,
+      PAYMAYA_NUMBER, PAYMAYA_NAME
+    } = process.env;
+
     const payload = {
       order_id,
       method,
       payment_ref,
-      amount: rows[0].total_amount
+      amount: Number(ord.total_amount),
+      instructions: {}
     };
 
     if (method === 'gcash') {
-      payload.instructions = 'Send exact amount to the GCash account below, then upload the receipt.';
-      payload.gcash_number = process.env.GCASH_NUMBER || '';
-      payload.gcash_name = process.env.GCASH_NAME || '';
-      payload.qr_url = process.env.GCASH_QR_URL || null; // optional hosted QR image
+      payload.instructions = {
+        number: GCASH_NUMBER || '',
+        name: GCASH_NAME || '',
+        qr_url: GCASH_QR_URL || ''
+      };
     } else if (method === 'bdo') {
-      payload.instructions = 'Deposit/transfer to the BDO account below, then upload the receipt.';
-      payload.bdo_account_name = process.env.BDO_ACCOUNT_NAME || '';
-      payload.bdo_account_number = process.env.BDO_ACCOUNT_NUMBER || '';
-      payload.bdo_branch = process.env.BDO_BRANCH || '';
-    } else if (method === 'paymaya') {
-      payload.instructions = 'Send payment via Maya to the account below, then upload the receipt.';
-      payload.maya_number = process.env.PAYMAYA_NUMBER || '';
-      payload.maya_name = process.env.PAYMAYA_NAME || '';
+      payload.instructions = {
+        account_name: BDO_ACCOUNT_NAME || '',
+        account_number: BDO_ACCOUNT_NUMBER || '',
+        branch: BDO_BRANCH || ''
+      };
+    } else {
+      payload.instructions = {
+        number: PAYMAYA_NUMBER || '',
+        name: PAYMAYA_NAME || ''
+      };
     }
 
     return res.json(payload);
