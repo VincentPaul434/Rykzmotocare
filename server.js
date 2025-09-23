@@ -37,7 +37,8 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/appointments', require('./routes/appointmentRoutes'));
 app.use('/api/feedback', require('./routes/feedbackRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
-app.use('/api/payments', require('./routes/payment')); 
+app.use('/api/payments', require('./routes/payment'));            // orders
+app.use('/api/service-payments', require('./routes/servicePayment')); // services
 app.use('/api', require('./routes/adminSignupRoutes'));
 app.use('/api', require('./routes/loginRoutes'));
 app.use('/api', require('./routes/userRegisterRoutes'));
@@ -49,6 +50,7 @@ app.use('/api/customer-bills', require('./routes/customerBillRoutes'));
 app.use('/api/shop', require('./routes/shopControlRoutes'));
 app.use('/api', require('./routes/notificationRoutes'));
 app.use('/api', require('./routes/orderRoutes'));
+app.use('/api', require('./routes/servicePayment'));
 
 
 const PORT = process.env.PORT || 5000;

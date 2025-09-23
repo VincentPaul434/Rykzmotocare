@@ -1,17 +1,20 @@
 const db = require('../config/db');
 
-// Submit feedback
+// Submit feedback (customer)
 const submitFeedback = async (req, res) => {
   try {
-    const { subject, message } = req.body;
-    const customer_id = req.user.id;
-    
+    const { booking_id, user_id, rating, comment } = req.body;
+    // Insert feedback
     await db.query(
-      'INSERT INTO feedback (customer_id, subject, message) VALUES (?, ?, ?)',
-      [customer_id, subject, message]
+      'INSERT INTO feedback (customer_id, booking_id, rating, message) VALUES (?, ?, ?, ?)',
+      [user_id, booking_id, rating, comment]
     );
-    
-    res.status(201).json({ message: 'Feedback submitted successfully' });
+    // Auto-reply from admin
+    await db.query(
+      'UPDATE feedback SET admin_reply = ?, is_resolved = TRUE WHERE booking_id = ? AND customer_id = ?',
+      ['Thank you for your feedback! We appreciate your response.', booking_id, user_id]
+    );
+    res.status(201).json({ message: 'Feedback submitted and replied successfully' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -27,7 +30,6 @@ const getAllFeedback = async (req, res) => {
        JOIN users u ON f.customer_id = u.user_id
        ORDER BY f.created_at DESC`
     );
-    
     res.json(feedback);
   } catch (err) {
     console.error(err);
@@ -39,12 +41,10 @@ const getAllFeedback = async (req, res) => {
 const replyToFeedback = async (req, res) => {
   try {
     const { feedback_id, admin_reply } = req.body;
-    
     await db.query(
       'UPDATE feedback SET admin_reply = ?, is_resolved = TRUE WHERE feedback_id = ?',
       [admin_reply, feedback_id]
     );
-    
     res.json({ message: 'Reply submitted successfully' });
   } catch (err) {
     console.error(err);
