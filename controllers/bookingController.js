@@ -43,6 +43,25 @@ const getAllBookings = async (req, res) => {
   }
 };
 
+// Get bookings for a specific user
+const getBookingsByUser = async (req, res) => {
+  const { user_id } = req.params;
+  try {
+    const [bookings] = await db.query(
+      `SELECT b.*, u.name 
+       FROM bookings b
+       LEFT JOIN users u ON b.user_id = u.user_id
+       WHERE b.user_id = ?
+       ORDER BY b.created_at DESC`,
+      [user_id]
+    );
+    res.json(bookings);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 // Update booking status/progress
 const updateBooking = async (req, res) => {
   const { id } = req.params;
@@ -62,8 +81,28 @@ const updateBooking = async (req, res) => {
   }
 };
 
+// Cancel a booking
+const cancelBooking = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await db.query(
+      `UPDATE bookings SET book_status = 'Cancelled' WHERE booking_id = ?`,
+      [id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Booking not found.' });
+    }
+    res.json({ message: 'Booking cancelled.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   createBooking,
   getAllBookings,
-  updateBooking
+  updateBooking,
+  getBookingsByUser,
+  cancelBooking
 };
