@@ -52,6 +52,9 @@ app.use('/api', require('./routes/notificationRoutes'));
 app.use('/api', require('./routes/orderRoutes'));
 app.use('/api', require('./routes/servicePayment'));
 
+// Ensure uploads and uploads/mechanics folders exist
+fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
+fs.mkdirSync(path.join(__dirname, 'uploads', 'mechanics'), { recursive: true });
 
 const PORT = process.env.PORT || 5000;
 
