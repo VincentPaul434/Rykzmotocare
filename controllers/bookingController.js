@@ -1,10 +1,10 @@
 const db = require('../config/db');
 
-// Create a new booking
+// Create a new booking (now requires mechanic_id)
 const createBooking = async (req, res) => {
   try {
-    let { user_id, vehicle_model, service_requested } = req.body;
-    if (!vehicle_model || !service_requested) {
+    let { user_id, vehicle_model, service_requested, mechanic_id } = req.body;
+    if (!vehicle_model || !service_requested || !mechanic_id) {
       return res.status(400).json({ message: 'Missing required fields.' });
     }
 
@@ -12,9 +12,9 @@ const createBooking = async (req, res) => {
     user_id = user_id !== undefined && user_id !== null && user_id !== '' ? Number(user_id) : null;
 
     const [result] = await db.query(
-      `INSERT INTO bookings (user_id, vehicle_model, service_requested, book_status, created_at)
-       VALUES (?, ?, ?, 'Pending', NOW())`,
-      [user_id, vehicle_model, service_requested]
+      `INSERT INTO bookings (user_id, vehicle_model, service_requested, mechanic_id, book_status, created_at)
+       VALUES (?, ?, ?, ?, 'Pending', NOW())`,
+      [user_id, vehicle_model, service_requested, mechanic_id]
     );
 
     res.status(201).json({
