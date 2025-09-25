@@ -48,9 +48,10 @@ const getBookingsByUser = async (req, res) => {
   const { user_id } = req.params;
   try {
     const [bookings] = await db.query(
-      `SELECT b.*, u.name 
+      `SELECT b.*, u.name AS user_name, m.name AS mechanic_name
        FROM bookings b
        LEFT JOIN users u ON b.user_id = u.user_id
+       LEFT JOIN mechanics m ON b.mechanic_id = m.mechanic_id
        WHERE b.user_id = ?
        ORDER BY b.created_at DESC`,
       [user_id]
