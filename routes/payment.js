@@ -38,4 +38,7 @@ router.post('/start', paymentController.startPayment);
 // POST /api/payments/upload
 router.post('/upload', upload.single('receipt'), paymentController.uploadReceiptAndMarkPaid);
 
+// GET /api/payments/user
+router.get('/user', paymentController.listPaymentsByUser);
+
 module.exports = router;

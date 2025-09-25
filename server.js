@@ -19,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Database connection
 const db = require('./config/db');
+const { resetPassword } = require('./controllers/resetPasswordController');
 
 // Test DB connection
 db.getConnection()
@@ -51,6 +52,7 @@ app.use('/api/shop', require('./routes/shopControlRoutes'));
 app.use('/api', require('./routes/notificationRoutes'));
 app.use('/api', require('./routes/orderRoutes'));
 app.use('/api', require('./routes/servicePayment'));
+app.use('/api/reset-password', require('./routes/resetPasswordRoutes'));
 
 // Ensure uploads and uploads/mechanics folders exist
 fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
