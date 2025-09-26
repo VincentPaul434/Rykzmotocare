@@ -63,6 +63,19 @@ const getBookingsByUser = async (req, res) => {
   }
 };
 
+const getCompletedBookingsByUser = async (req, res) => {
+  const { user_id } = req.params;
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM bookings WHERE user_id = ? AND book_status = "Completed"',
+      [user_id]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json([]);
+  }
+};
+
 // Update booking status/progress
 const updateBooking = async (req, res) => {
   const { id } = req.params;
@@ -105,5 +118,6 @@ module.exports = {
   getAllBookings,
   updateBooking,
   getBookingsByUser,
-  cancelBooking
+  cancelBooking,
+  getCompletedBookingsByUser
 };
