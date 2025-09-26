@@ -1,10 +1,10 @@
 const db = require('../config/db');
 
-// Get all mechanics
+// Get all mechanics (only available)
 exports.getMechanics = async (req, res) => {
   try {
     const [mechanics] = await db.query(
-      'SELECT mechanic_id AS id, name FROM mechanics WHERE status = "Available"'
+      'SELECT mechanic_id AS id, name, experience FROM mechanics WHERE status = "Available"'
     );
     res.json({ mechanics });
   } catch (err) {
@@ -17,7 +17,7 @@ exports.getMechanics = async (req, res) => {
 exports.getAllMechanics = async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT mechanic_id AS id, name, specialization, days_available, time_available, status, image_url FROM mechanics'
+      'SELECT mechanic_id AS id, name, specialization, days_available, time_available, status, image_url, experience FROM mechanics'
     );
     res.json({ mechanics: rows });
   } catch (err) {
@@ -30,7 +30,7 @@ exports.getMechanicById = async (req, res) => {
   const { mechanic_id } = req.params;
   try {
     const [rows] = await db.query(
-      'SELECT mechanic_id AS id, name, specialization, days_available, time_available, status, image_url FROM mechanics WHERE mechanic_id = ? LIMIT 1',
+      'SELECT mechanic_id AS id, name, specialization, days_available, time_available, status, image_url, experience FROM mechanics WHERE mechanic_id = ? LIMIT 1',
       [mechanic_id]
     );
     if (!rows.length) return res.status(404).json({ message: 'Mechanic not found' });
@@ -44,18 +44,18 @@ exports.getMechanicById = async (req, res) => {
 // Add a new mechanic (supports photo upload)
 exports.addMechanic = async (req, res) => {
   const body = req.body || {};
-  const { name, specialization, days_available, time_available, status = 'Available' } = body;
+  const { name, specialization, days_available, time_available, status = 'Available', experience = 0 } = body;
 
   if (!name || !specialization) {
     return res.status(400).json({ message: 'name and specialization are required' });
   }
 
-  const image_url = req.file ? `/uploads/${req.file.filename}` : body.image_url || null;
+  const image_url = req.file ? `/uploads/mechanics/${req.file.filename}` : body.image_url || null;
 
   try {
     await db.query(
-      'INSERT INTO mechanics (name, specialization, days_available, time_available, status, image_url) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, specialization, days_available, time_available, status, image_url]
+      'INSERT INTO mechanics (name, specialization, days_available, time_available, status, image_url, experience) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name, specialization, days_available, time_available, status, image_url, experience]
     );
     res.json({ message: 'Mechanic added', image_url });
   } catch (err) {
@@ -68,15 +68,15 @@ exports.addMechanic = async (req, res) => {
 exports.updateMechanic = async (req, res) => {
   const { mechanic_id } = req.params;
   const body = req.body || {};
-  const { name, specialization, days_available, time_available, status } = body;
+  const { name, specialization, days_available, time_available, status, experience = 0 } = body;
 
   let image_url = body.image_url || null;
-  if (req.file) image_url = `/uploads/${req.file.filename}`;
+  if (req.file) image_url = `/uploads/mechanics/${req.file.filename}`;
 
   try {
     await db.query(
-      'UPDATE mechanics SET name=?, specialization=?, days_available=?, time_available=?, status=?, image_url=? WHERE mechanic_id=?',
-      [name, specialization, days_available, time_available, status, image_url, mechanic_id]
+      'UPDATE mechanics SET name=?, specialization=?, days_available=?, time_available=?, status=?, image_url=?, experience=? WHERE mechanic_id=?',
+      [name, specialization, days_available, time_available, status, image_url, experience, mechanic_id]
     );
     res.json({ message: 'Mechanic updated', image_url });
   } catch (err) {
@@ -85,7 +85,7 @@ exports.updateMechanic = async (req, res) => {
   }
 };
 
-// Delete mechanic (no admin_id required)
+// Delete mechanic
 exports.deleteMechanic = async (req, res) => {
   const { mechanic_id } = req.params;
   try {
@@ -100,9 +100,8 @@ exports.deleteMechanic = async (req, res) => {
 exports.getMechanicAvailability = async (req, res) => {
   const { service } = req.query;
   try {
-    // Match service to specialization and status to 'Available'
     const [mechanics] = await db.query(
-      'SELECT mechanic_id AS id, name FROM mechanics WHERE specialization = ? AND status = "Available"',
+      'SELECT mechanic_id AS id, name, experience FROM mechanics WHERE specialization = ? AND status = "Available"',
       [service]
     );
     res.json({ mechanics });

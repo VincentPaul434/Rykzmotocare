@@ -7,12 +7,12 @@ function makeRef() {
   return 'PMT-' + crypto.randomBytes(6).toString('hex').toUpperCase();
 }
 
-// Start a payment for an order (gcash | bdo | paymaya)
+// Start a payment for an order (gcash only)
 exports.startPayment = async (req, res) => {
   const { order_id, user_id, method } = req.body || {};
-  const allowed = new Set(['gcash', 'bdo', 'paymaya']);
+  const allowed = new Set(['gcash']); // Only allow gcash
   if (!order_id || !user_id || !method || !allowed.has(method)) {
-    return res.status(400).json({ message: 'order_id, user_id and method (gcash|bdo|paymaya) are required' });
+    return res.status(400).json({ message: 'order_id, user_id and method (gcash) are required' });
   }
 
   try {
@@ -34,38 +34,19 @@ exports.startPayment = async (req, res) => {
       [method, payment_ref, order_id, user_id]
     );
 
-    const {
-      GCASH_NUMBER, GCASH_NAME, GCASH_QR_URL,
-      BDO_ACCOUNT_NAME, BDO_ACCOUNT_NUMBER, BDO_BRANCH,
-      PAYMAYA_NUMBER, PAYMAYA_NAME
-    } = process.env;
+    const { GCASH_NUMBER, GCASH_NAME, GCASH_QR_URL } = process.env;
 
     const payload = {
       order_id,
       method,
       payment_ref,
       amount: Number(ord.total_amount),
-      instructions: {}
-    };
-
-    if (method === 'gcash') {
-      payload.instructions = {
+      instructions: {
         number: GCASH_NUMBER || '',
         name: GCASH_NAME || '',
         qr_url: GCASH_QR_URL || ''
-      };
-    } else if (method === 'bdo') {
-      payload.instructions = {
-        account_name: BDO_ACCOUNT_NAME || '',
-        account_number: BDO_ACCOUNT_NUMBER || '',
-        branch: BDO_BRANCH || ''
-      };
-    } else {
-      payload.instructions = {
-        number: PAYMAYA_NUMBER || '',
-        name: PAYMAYA_NAME || ''
-      };
-    }
+      }
+    };
 
     return res.json(payload);
   } catch (err) {

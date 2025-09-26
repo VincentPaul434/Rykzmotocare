@@ -1,6 +1,5 @@
 const db = require('../config/db');
 
-// Submit feedback (customer)
 const submitFeedback = async (req, res) => {
   try {
     const { booking_id, user_id, rating, comment } = req.body;
@@ -18,9 +17,15 @@ const submitFeedback = async (req, res) => {
       [user_id, booking_id, rating, comment]
     );
     // Auto-reply from admin for this feedback only
+    const autoReply = 'Thank you for your feedback! We appreciate your response.';
     await db.query(
       'UPDATE feedback SET admin_reply = ?, is_resolved = TRUE WHERE feedback_id = ?',
-      ['Thank you for your feedback! We appreciate your response.', result.insertId]
+      [autoReply, result.insertId]
+    );
+    // Notify user
+    await db.query(
+      'INSERT INTO notifications (user_id, message, type) VALUES (?, ?, ?)',
+      [user_id, autoReply, 'feedback']
     );
     res.status(201).json({ message: 'Feedback submitted and replied successfully', feedback_id: result.insertId });
   } catch (err) {
@@ -29,34 +34,24 @@ const submitFeedback = async (req, res) => {
   }
 };
 
-// Get all feedback (admin)
 const getAllFeedback = async (req, res) => {
   try {
-    const [feedback] = await db.query(
-      `SELECT f.*, u.name, u.email 
-       FROM feedback f
-       JOIN users u ON f.customer_id = u.user_id
-       ORDER BY f.created_at DESC`
-    );
-    res.json(feedback);
+    const [rows] = await db.query('SELECT * FROM feedback ORDER BY created_at DESC');
+    res.json(rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json([]);
   }
 };
 
-// Reply to feedback (admin)
 const replyToFeedback = async (req, res) => {
+  const { feedback_id, user_id, reply } = req.body;
   try {
-    const { feedback_id, admin_reply } = req.body;
-    await db.query(
-      'UPDATE feedback SET admin_reply = ?, is_resolved = TRUE WHERE feedback_id = ?',
-      [admin_reply, feedback_id]
-    );
-    res.json({ message: 'Reply submitted successfully' });
+    await db.query('UPDATE feedbacks SET admin_reply = ? WHERE feedback_id = ?', [reply, feedback_id]);
+    // This line sends a notification to the user:
+    await db.query('INSERT INTO notifications (user_id, message, type) VALUES (?, ?, ?)', [user_id, `Admin replied: ${reply}`, 'feedback']);
+    res.json({ success: true });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 

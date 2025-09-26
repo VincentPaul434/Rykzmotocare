@@ -34,4 +34,5 @@ router.put('/mechanics/:mechanic_id', upload.single('photo'), mechanicController
 // Delete
 router.delete('/mechanics/:mechanic_id', mechanicController.deleteMechanic);
 
+
 module.exports = router;

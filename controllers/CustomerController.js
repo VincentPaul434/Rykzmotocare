@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const sendMail = require('../utils/sendMail');
+const bcrypt = require('bcrypt');
 
 exports.getCustomers = async (req, res) => {
   try {
@@ -65,7 +66,7 @@ exports.deleteCustomer = async (req, res) => {
 
 exports.updateCustomer = async (req, res) => {
   const { user_id } = req.params;
-  const { name, email, phone } = req.body;
+  const { name, email, phone, password } = req.body;
 
   const fields = [];
   const values = [];
@@ -73,6 +74,11 @@ exports.updateCustomer = async (req, res) => {
   if (name !== undefined) { fields.push('name = ?'); values.push(name); }
   if (email !== undefined) { fields.push('email = ?'); values.push(email); }
   if (phone !== undefined) { fields.push('phone = ?'); values.push(phone); }
+  if (password !== undefined && password !== '') {
+    const hash = await bcrypt.hash(password, 10);
+    fields.push('password_hash = ?');
+    values.push(hash);
+  }
 
   if (fields.length === 0) {
     return res.status(400).json({ message: 'No updatable fields provided' });
@@ -88,7 +94,6 @@ exports.updateCustomer = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      // Determine why no row updated
       const [exists] = await db.query(
         "SELECT user_id, user_type, status FROM users WHERE user_id = ?",
         [user_id]
@@ -101,7 +106,6 @@ exports.updateCustomer = async (req, res) => {
         return res.status(409).json({ message: 'Customer is deleted' });
       }
 
-      // Row exists and is updatable, but data was identical
       const [rows] = await db.query(
         "SELECT user_id, name, email, phone, user_type, created_at, status FROM users WHERE user_id = ?",
         [user_id]

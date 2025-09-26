@@ -36,7 +36,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/appointments', require('./routes/appointmentRoutes'));
-app.use('/api/feedbacks', require('./routes/feedbackRoutes'));
+app.use('/api/feedback', require('./routes/feedbackRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/payments', require('./routes/payment'));            // orders
 app.use('/api/service-payments', require('./routes/servicePayment')); // services
@@ -53,6 +53,7 @@ app.use('/api', require('./routes/notificationRoutes'));
 app.use('/api', require('./routes/orderRoutes'));
 app.use('/api', require('./routes/servicePayment'));
 app.use('/api/reset-password', require('./routes/resetPasswordRoutes'));
+app.use('/api/read', require('./routes/readRoutes'));
 
 // Ensure uploads and uploads/mechanics folders exist
 fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
