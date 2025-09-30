@@ -1,17 +1,21 @@
 const db = require('../config/db');
 
-// Create a notification
+// Create a notification (supports invoice upload)
 exports.createNotification = async (req, res) => {
   const { user_id, message, type = 'info' } = req.body || {};
+  let invoice_url = '';
+  if (req.file) {
+    invoice_url = `/uploads/invoices/${req.file.filename}`;
+  }
   if (!user_id || !message) {
     return res.status(400).json({ success: false, error: 'user_id and message are required' });
   }
   try {
     await db.query(
-      'INSERT INTO notifications (user_id, message, type) VALUES (?, ?, ?)',
-      [user_id, message, type]
+      'INSERT INTO notifications (user_id, message, type, invoice_url) VALUES (?, ?, ?, ?)',
+      [user_id, message, type, invoice_url]
     );
-    res.json({ success: true });
+    res.json({ success: true, invoice_url });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

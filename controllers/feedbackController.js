@@ -34,9 +34,15 @@ const submitFeedback = async (req, res) => {
   }
 };
 
+// feedbackController.js
 const getAllFeedback = async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM feedback ORDER BY created_at DESC');
+    const [rows] = await db.query(`
+      SELECT f.*, u.name, u.email
+      FROM feedback f
+      LEFT JOIN users u ON f.customer_id = u.user_id
+      ORDER BY f.created_at DESC
+    `);
     res.json(rows);
   } catch (err) {
     res.status(500).json([]);
