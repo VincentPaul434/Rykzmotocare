@@ -96,6 +96,7 @@ const updateBooking = async (req, res) => {
 };
 
 // Cancel a booking
+//fixed the issue with cancel booking
 const cancelBooking = async (req, res) => {
   const { id } = req.params;
   try {
